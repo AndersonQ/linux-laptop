@@ -1,6 +1,6 @@
 .PHONY: install-base
 install-base:
-	sudo pacman -S--needed $$(<packages-base)
+	sudo pacman -S --needed $$(<packages-base)
 	./script-install-yay.sh
 
 .PHONY: install-aur

@@ -330,6 +330,36 @@ sudo vim /etc/ssh/sshd_config
 cat /sys/class/power_supply/BAT0/capacity
 ```
 
+ - Fix Gnome settings
+
+ ```shell
+ dconf load -f / < dconf.bkp
+ ```
+
+- Add finferprint to sudo: https://wiki.archlinux.org/title/fprint
+
+edit `/etc/pam.d/sudo`
+add `auth            sufficient      pam_fprintd.so` as the first one:
+``````
+auth            sufficient      pam_fprintd.so
+auth            include         system-auth
+```
+
+
+- Add and configure Gnome extensions
+
+Install [chrome-gnome-shell and gnome-browser-connector](https://wiki.gnome.org/action/show/Projects/GnomeShellIntegration/Installation)
+```
+git clone https://aur.archlinux.org/gnome-browser-connector.git
+cd gnome-browser-connector
+makepkg -si
+```
+
+- Droidcam
+
+```shell
+yay -S droidcam lantern-bin
+```
 
 ## Using KeepassXC to manage SSH keys
 https://ferrario.me/using-keepassxc-to-manage-ssh-keys/

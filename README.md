@@ -361,6 +361,74 @@ makepkg -si
 yay -S droidcam lantern-bin
 ```
 
+ - Authenticate with fingerprint only when lid is open
+Better safe than sorry, have a shell with root in case you break sudo authentication
+
+Edit `/etc/pam.d/sudo` to be:
+
+```
+#%PAM-1.0
+auth		include		system-auth
+account		include		system-auth
+session		include		system-auth
+```
+
+Create a script to detect if the lid is closed or opened
+```shell
+vim /usr/local/bin/check_lid_open.sh
+```
+```
+#!/bin/bash
+# Returns 0 if lid is open or state unknown, 1 if closed
+if grep -q "closed" /proc/acpi/button/lid/LID0/state; then
+    exit 1
+fi
+exit 0
+```
+```shell
+chmod + /usr/local/bin/check_lid_open.sh
+```
+
+ - Edit `/etc/pam.d/system-auth`
+```
+#%PAM-1.0
+
+auth       required                    pam_faillock.so      preauth
+# Optionally use requisite above if you do not want to prompt for the password
+# on locked accounts.
+-auth      [success=2 default=ignore]  pam_systemd_home.so
+
+# Lid check: skip 1 (fingerpeint) line if closed (1)
+auth       [success=ignore default=1]  pam_exec.so quiet /usr/local/bin/check_lid_open.sh
+auth       sufficient                  pam_fprintd.so
+auth       [success=1 default=bad]     pam_unix.so          nullok
+auth       [default=die]               pam_faillock.so      authfail
+auth       optional                    pam_permit.so
+auth       required                    pam_env.so
+auth       required                    pam_faillock.so      authsucc
+# If you drop the above call to pam_faillock.so the lock will be done also
+# on non-consecutive authentication failures.
+
+-account   [success=1 default=ignore]  pam_systemd_home.so
+account    required                    pam_unix.so
+account    optional                    pam_permit.so
+account    required                    pam_time.so
+
+-password  [success=1 default=ignore]  pam_systemd_home.so
+password   required                    pam_unix.so          try_first_pass nullok shadow
+password   optional                    pam_permit.so
+
+-session   optional                    pam_systemd_home.so
+session    required                    pam_limits.so
+session    required                    pam_unix.so
+session    optional                    pam_permit.so
+```
+
+How it Works
+`[success=ignore default=1]`: If the script returns 0 (success/lid open), PAM ignores the result and proceeds to the next line (pam_fprintd.so). If it returns anything else (default/lid closed), it skips exactly 1 line of the configuration.
+`quiet`: Suppresses the terminal output of the script's exit status.
+`pam_fprintd.so`: This is the line that gets skipped when the lid is closed, falling back directly to pam_unix.so (password).
+
 ## Using KeepassXC to manage SSH keys
 https://ferrario.me/using-keepassxc-to-manage-ssh-keys/
 

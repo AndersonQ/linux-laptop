@@ -388,7 +388,7 @@ exit 0
 ```
 
 ```shell
-chmod + /usr/local/bin/check_lid_open.sh
+chmod +x /usr/local/bin/check_lid_open.sh
 ```
 
  - Edit `/etc/pam.d/system-auth`

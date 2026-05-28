@@ -340,7 +340,7 @@ cat /sys/class/power_supply/BAT0/capacity
 
 edit `/etc/pam.d/sudo`
 add `auth            sufficient      pam_fprintd.so` as the first one:
-``````
+```
 auth            sufficient      pam_fprintd.so
 auth            include         system-auth
 ```
@@ -377,6 +377,7 @@ Create a script to detect if the lid is closed or opened
 ```shell
 vim /usr/local/bin/check_lid_open.sh
 ```
+
 ```
 #!/bin/bash
 # Returns 0 if lid is open or state unknown, 1 if closed
@@ -385,11 +386,13 @@ if grep -q "closed" /proc/acpi/button/lid/LID0/state; then
 fi
 exit 0
 ```
+
 ```shell
 chmod + /usr/local/bin/check_lid_open.sh
 ```
 
  - Edit `/etc/pam.d/system-auth`
+
 ```
 #%PAM-1.0
 
